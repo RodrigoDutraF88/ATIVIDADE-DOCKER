@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 #
-# verificar.sh - checagens objetivas da trilha de Docker da Doca.
+# verificar.sh - checagens objetivas da trilha de Docker da Docker.
 # Uso: ./verificar.sh <numero-da-sessao>   (de 1 a 8)
 #
 # Cada checagem imprime OK ou FALHA com uma linha do que fazer.
 # Sai com codigo 0 se tudo passou, 1 caso contrario.
 #
 # Ajuste por variavel de ambiente, se necessario:
-#   DOCA_DB_CONTAINER (padrao doca-db)
-#   DOCA_DB_PORT      (padrao 5432)
-#   DOCA_API_PORT     (padrao 3000)
-#   DOCA_IMAGE        (padrao ghcr.io/<org>/doca) - use a tag real nas sessoes 3 e 8
+#   DOCKER_DB_CONTAINER (padrao docker-db)
+#   DOCKER_DB_PORT      (padrao 5432)
+#   DOCKER_API_PORT     (padrao 3000)
+#   DOCKER_IMAGE        (padrao ghcr.io/<org>/docker) - use a tag real nas sessoes 3 e 8
 
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-DB_CONTAINER="${DOCA_DB_CONTAINER:-doca-db}"
-DB_PORT="${DOCA_DB_PORT:-5432}"
-API_PORT="${DOCA_API_PORT:-3000}"
+DB_CONTAINER="${DOCKER_DB_CONTAINER:-docker-db}"
+DB_PORT="${DOCKER_DB_PORT:-5432}"
+API_PORT="${DOCKER_API_PORT:-3000}"
 API_URL="http://localhost:${API_PORT}"
-IMAGE="${DOCA_IMAGE:-ghcr.io/<org>/doca}"
+IMAGE="${DOCKER_IMAGE:-ghcr.io/<org>/docker}"
 STATE_FILE="${SCRIPT_DIR}/.verificar-tamanho"
 
 FALHOU=0
@@ -109,7 +109,7 @@ sessao1() {
   exigir_docker || return
   local c; c="$(find_pg_container)"
   if [ -z "$c" ]; then
-    falha "Nenhum container Postgres rodando. Suba um (ex: docker run -d -p ${DB_PORT}:5432 -e POSTGRES_PASSWORD=doca postgres:16-alpine)."
+    falha "Nenhum container Postgres rodando. Suba um (ex: docker run -d -p ${DB_PORT}:5432 -e POSTGRES_PASSWORD=docker postgres:16-alpine)."
     return
   fi
   ok "Container Postgres em execucao: $c"
@@ -126,7 +126,7 @@ sessao1() {
 }
 
 sessao2() {
-  echo "Sessao 2: container doca-db, exec e logs"
+  echo "Sessao 2: container docker-db, exec e logs"
   exigir_docker || return
   if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$DB_CONTAINER"; then
     falha "Container '${DB_CONTAINER}' nao esta rodando. Suba com --name ${DB_CONTAINER}."
@@ -152,12 +152,12 @@ sessao3() {
   if docker image inspect "$IMAGE" >/dev/null 2>&1; then
     img="$IMAGE"
   else
-    # tolera <org> nao substituido: procura qualquer imagem local .../doca
+    # tolera <org> nao substituido: procura qualquer imagem local .../docker
     img="$(docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null \
-            | grep -E '/doca(:|$)' | head -n1)"
+            | grep -E '/docker(:|$)' | head -n1)"
   fi
   if [ -z "$img" ]; then
-    falha "Imagem da Doca nao encontrada localmente. Rode: docker pull ${IMAGE} (defina DOCA_IMAGE com a tag real)."
+    falha "Imagem da Docker nao encontrada localmente. Rode: docker pull ${IMAGE} (defina DOCKER_IMAGE com a tag real)."
     return
   fi
   ok "Imagem presente localmente: $img"
@@ -176,14 +176,14 @@ sessao4() {
     return
   fi
   ok "Dockerfile encontrado na raiz."
-  if docker build -t doca-local:sessao4 "$SCRIPT_DIR" >/dev/null 2>&1; then
+  if docker build -t docker-local:sessao4 "$SCRIPT_DIR" >/dev/null 2>&1; then
     ok "Imagem builda."
   else
-    falha "Build falhou. Rode 'docker build -t doca-local:sessao4 .' para ver o erro."
+    falha "Build falhou. Rode 'docker build -t docker-local:sessao4 .' para ver o erro."
     return
   fi
   local cid
-  cid="$(docker run -d -p "${API_PORT}:${API_PORT}" -e PORT="${API_PORT}" doca-local:sessao4 2>/dev/null)"
+  cid="$(docker run -d -p "${API_PORT}:${API_PORT}" -e PORT="${API_PORT}" docker-local:sessao4 2>/dev/null)"
   if [ -z "$cid" ]; then
     falha "Container nao subiu. Confira a porta ${API_PORT} livre."
     return
@@ -216,12 +216,12 @@ sessao5() {
   else
     falha ".dockerignore ausente ou sem node_modules. Renomeie .dockerignore.exemplo para .dockerignore."
   fi
-  if ! docker build -t doca-local:sessao5 "$SCRIPT_DIR" >/dev/null 2>&1; then
-    falha "Build falhou. Rode 'docker build -t doca-local:sessao5 .' para ver o erro."
+  if ! docker build -t docker-local:sessao5 "$SCRIPT_DIR" >/dev/null 2>&1; then
+    falha "Build falhou. Rode 'docker build -t docker-local:sessao5 .' para ver o erro."
     return
   fi
   local bytes mb antes
-  bytes="$(docker image inspect --format '{{.Size}}' doca-local:sessao5 2>/dev/null)"
+  bytes="$(docker image inspect --format '{{.Size}}' docker-local:sessao5 2>/dev/null)"
   mb="$(awk -v b="${bytes:-0}" 'BEGIN{printf "%.1f", b/1048576}')"
   if [ -f "$STATE_FILE" ]; then
     antes="$(awk -v b="$(cat "$STATE_FILE" 2>/dev/null)" 'BEGIN{printf "%.1f", b/1048576}')"
@@ -326,7 +326,7 @@ sessao8() {
   if docker manifest inspect "$IMAGE" >/dev/null 2>&1; then
     ok "Tag remota existe no registro: $IMAGE"
   else
-    falha "Tag remota nao encontrada. Publique com 'docker push ${IMAGE}' (defina DOCA_IMAGE com a tag real)."
+    falha "Tag remota nao encontrada. Publique com 'docker push ${IMAGE}' (defina DOCKER_IMAGE com a tag real)."
   fi
   if ! compose_disponivel; then
     falha "'docker compose' indisponivel. Atualize o Docker."

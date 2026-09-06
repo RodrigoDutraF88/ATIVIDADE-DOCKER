@@ -15,17 +15,17 @@ services:
       db:
         condition: service_healthy
     networks:
-      - doca-net
+      - docker-net
 
   db:
     image: postgres:16-alpine
-    container_name: doca-db
+    container_name: docker-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - doca-dados:/var/lib/postgresql/data
+      - docker-dados:/var/lib/postgresql/data
       # schema e seed sao aplicados na primeira inicializacao do volume.
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
@@ -35,10 +35,10 @@ services:
       timeout: 3s
       retries: 10
     networks:
-      - doca-net
+      - docker-net
 
 volumes:
-  doca-dados:
+  docker-dados:
 
 networks:
-  doca-net:
+  docker-net:

@@ -1,5 +1,5 @@
 {
-  "name": "doca",
+  "name": "docker",
   "version": "1.0.0",
   "description": "API minima de mural de recados da trilha de Docker da CJR",
   "private": true,
