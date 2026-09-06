@@ -56,5 +56,5 @@ app.post("/recados", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log("Docker ouvindo na porta " + PORT);
+  console.log("API de recados ouvindo na porta " + PORT);
 });
