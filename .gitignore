@@ -1,0 +1,17 @@
+# O membro escreve estes arquivos ao longo da trilha; nao versionar na main.
+Dockerfile
+compose.yaml
+compose.yml
+docker-compose.yaml
+docker-compose.yml
+.dockerignore
+
+# Ambiente local.
+.env
+
+# Dependencias.
+node_modules
+npm-debug.log
+
+# Estado local do verificar.sh.
+.verificar-tamanho

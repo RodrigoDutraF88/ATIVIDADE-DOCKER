@@ -1,0 +1,44 @@
+name: entrega
+
+on:
+  pull_request:
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do PR
+        uses: actions/checkout@v4
+
+      - name: Verificar arquivos de infraestrutura
+        run: |
+          test -f Dockerfile || { echo "Falta o Dockerfile na raiz."; exit 1; }
+          test -f compose.yaml || test -f compose.yml || \
+            { echo "Falta o compose.yaml na raiz."; exit 1; }
+
+      - name: Preparar .env
+        run: cp .env.example .env
+
+      - name: Subir com compose
+        run: docker compose up -d --build
+
+      - name: Aguardar /health responder 200
+        run: |
+          porta="$(grep -E '^PORT=' .env | cut -d= -f2)"
+          porta="${porta:-3000}"
+          for i in $(seq 1 30); do
+            codigo="$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:${porta}/health" || true)"
+            if [ "$codigo" = "200" ]; then
+              echo "/health respondeu 200."
+              exit 0
+            fi
+            echo "tentativa $i: /health = ${codigo:-sem resposta}"
+            sleep 2
+          done
+          echo "/health nao respondeu 200 a tempo."
+          docker compose logs
+          exit 1
+
+      - name: Derrubar
+        if: always()
+        run: docker compose down -v

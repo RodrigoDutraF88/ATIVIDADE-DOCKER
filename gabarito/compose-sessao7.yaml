@@ -1,0 +1,44 @@
+# Gabarito da sessao 7: sobe API e banco juntos.
+# Consulte so depois de tentar. Renomeie para compose.yaml na raiz para usar.
+# Variaveis vem do .env (copie de .env.example).
+
+services:
+  api:
+    build: .
+    environment:
+      PORT: ${PORT}
+      # O host do banco e o nome do servico (db), nao localhost.
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - doca-net
+
+  db:
+    image: postgres:16-alpine
+    container_name: doca-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - doca-dados:/var/lib/postgresql/data
+      # schema e seed sao aplicados na primeira inicializacao do volume.
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    networks:
+      - doca-net
+
+volumes:
+  doca-dados:
+
+networks:
+  doca-net:

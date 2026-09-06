@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS recados (
+  id SERIAL PRIMARY KEY,
+  autor TEXT NOT NULL,
+  texto TEXT NOT NULL,
+  criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+);

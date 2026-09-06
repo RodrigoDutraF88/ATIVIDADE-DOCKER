@@ -1,0 +1,17 @@
+# Gabarito da sessao 4: primeiro Dockerfile, uma unica etapa.
+# Consulte so depois de tentar. Renomeie para Dockerfile na raiz para usar.
+
+FROM node:22
+
+WORKDIR /app
+
+# Instala dependencias primeiro para aproveitar cache de camada.
+COPY api/package.json ./
+RUN npm install
+
+# Copia o codigo da API.
+COPY api/ ./
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
