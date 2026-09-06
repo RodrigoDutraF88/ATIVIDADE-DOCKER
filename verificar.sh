@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# verificar.sh - checagens objetivas da trilha de Docker da Docker.
+# verificar.sh - checagens objetivas da trilha de Docker da CJR.
 # Uso: ./verificar.sh <numero-da-sessao>   (de 1 a 8)
 #
 # Cada checagem imprime OK ou FALHA com uma linha do que fazer.
@@ -157,7 +157,7 @@ sessao3() {
             | grep -E '/docker(:|$)' | head -n1)"
   fi
   if [ -z "$img" ]; then
-    falha "Imagem da Docker nao encontrada localmente. Rode: docker pull ${IMAGE} (defina DOCKER_IMAGE com a tag real)."
+    falha "Imagem da API nao encontrada localmente. Rode: docker pull ${IMAGE} (defina DOCKER_IMAGE com a tag real)."
     return
   fi
   ok "Imagem presente localmente: $img"
