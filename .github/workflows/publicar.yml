@@ -1,0 +1,32 @@
+name: publicar
+
+# Publica a imagem da API no GitHub Container Registry (ghcr.io).
+# Rode manualmente pela aba Actions (Run workflow). Serve para o modulo 3,
+# quando os membros precisam dar `docker pull` da imagem pronta.
+on:
+  workflow_dispatch:
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login no ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build e push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: gabarito/dockerfile-sessao5-multistage
+          push: true
+          tags: ghcr.io/rodrigodutraf88/recados:latest

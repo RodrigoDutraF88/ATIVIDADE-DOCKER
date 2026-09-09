@@ -23,7 +23,7 @@ com o verificar.sh. O codigo em api/ e db/ nao precisa ser alterado.
 |--------|---------|
 | 1 | Subir um Postgres em container aceitando conexao na porta esperada |
 | 2 | Container do banco chamado recados-db, acessivel por exec e logs |
-| 3 | Puxar e rodar a imagem ghcr.io/RodrigoDutraF88/recados |
+| 3 | Puxar e rodar a imagem ghcr.io/rodrigodutraf88/recados |
 | 4 | Escrever o Dockerfile da API na raiz; imagem builda e /health responde |
 | 5 | Dockerfile multi-stage abaixo de 200MB e .dockerignore com node_modules |
 | 6 | Volume nomeado para o banco e rede definida pelo usuario |

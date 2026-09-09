@@ -10,7 +10,7 @@
 #   RECADOS_DB_CONTAINER (padrao recados-db)
 #   RECADOS_DB_PORT      (padrao 5432)
 #   RECADOS_API_PORT     (padrao 3000)
-#   RECADOS_IMAGE        (padrao ghcr.io/RodrigoDutraF88/recados) - use a tag real nas sessoes 3 e 8
+#   RECADOS_IMAGE        (padrao ghcr.io/rodrigodutraf88/recados) - use a tag real nas sessoes 3 e 8
 
 set -u
 
@@ -20,7 +20,7 @@ DB_CONTAINER="${RECADOS_DB_CONTAINER:-recados-db}"
 DB_PORT="${RECADOS_DB_PORT:-5432}"
 API_PORT="${RECADOS_API_PORT:-3000}"
 API_URL="http://localhost:${API_PORT}"
-IMAGE="${RECADOS_IMAGE:-ghcr.io/RodrigoDutraF88/recados}"
+IMAGE="${RECADOS_IMAGE:-ghcr.io/rodrigodutraf88/recados}"
 STATE_FILE="${SCRIPT_DIR}/.verificar-tamanho"
 
 FALHOU=0
