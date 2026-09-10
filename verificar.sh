@@ -182,6 +182,9 @@ sessao4() {
     falha "Build falhou. Rode 'docker build -t recados-local:sessao4 .' para ver o erro."
     return
   fi
+  # Guarda o tamanho desta imagem para a sessao5 mostrar a reducao.
+  local b4; b4="$(docker image inspect --format '{{.Size}}' recados-local:sessao4 2>/dev/null)"
+  [ -n "$b4" ] && echo "$b4" > "$STATE_FILE" 2>/dev/null
   local cid
   cid="$(docker run -d -p "${API_PORT}:${API_PORT}" -e PORT="${API_PORT}" recados-local:sessao4 2>/dev/null)"
   if [ -z "$cid" ]; then
@@ -225,9 +228,10 @@ sessao5() {
   mb="$(awk -v b="${bytes:-0}" 'BEGIN{printf "%.1f", b/1048576}')"
   if [ -f "$STATE_FILE" ]; then
     antes="$(awk -v b="$(cat "$STATE_FILE" 2>/dev/null)" 'BEGIN{printf "%.1f", b/1048576}')"
-    echo "        Tamanho antes: ${antes} MB  ->  agora: ${mb} MB"
+    echo "        Tamanho antes (sessao4): ${antes} MB  ->  agora: ${mb} MB"
+  else
+    echo "        Rode ./verificar.sh 4 antes para comparar a reducao de tamanho."
   fi
-  echo "$bytes" > "$STATE_FILE" 2>/dev/null
   if awk -v b="${bytes:-0}" 'BEGIN{exit !(b < 200*1048576)}'; then
     ok "Imagem tem ${mb} MB (abaixo de 200MB)."
   else
