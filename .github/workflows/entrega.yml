@@ -5,6 +5,8 @@ on:
 
 jobs:
   validar:
+    # PRs de checkpoint (branch checkpoint/*) sao validados pelo workflow checkpoint.
+    if: ${{ !startsWith(github.head_ref, 'checkpoint/') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout do PR

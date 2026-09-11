@@ -1,0 +1,43 @@
+name: checkpoint
+
+# Checkpoint da metade da trilha (Sessao 4): valida so o Dockerfile.
+# Dispara em PRs cujo branch comeca com "checkpoint/" (ex: checkpoint/seu-nome).
+# Nesta fase ainda nao existe banco, entao /health respondendo 503 e sucesso.
+on:
+  pull_request:
+
+jobs:
+  checkpoint-sessao4:
+    if: ${{ startsWith(github.head_ref, 'checkpoint/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do PR
+        uses: actions/checkout@v4
+
+      - name: Verificar Dockerfile na raiz
+        run: test -f Dockerfile || { echo "Falta o Dockerfile na raiz (Sessao 4)."; exit 1; }
+
+      - name: Buildar a imagem
+        run: docker build -t recados-checkpoint:pr .
+
+      - name: Subir o container sem banco
+        run: docker run -d --name recados-checkpoint -p 3000:3000 -e PORT=3000 recados-checkpoint:pr
+
+      - name: Aguardar /health responder (200 ou 503)
+        run: |
+          for i in $(seq 1 20); do
+            codigo="$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000/health" || true)"
+            if [ "$codigo" = "200" ] || [ "$codigo" = "503" ]; then
+              echo "/health respondeu ${codigo} (503 e esperado sem banco nesta fase)."
+              exit 0
+            fi
+            echo "tentativa $i: /health = ${codigo:-sem resposta}"
+            sleep 2
+          done
+          echo "/health nao respondeu a tempo."
+          docker logs recados-checkpoint || true
+          exit 1
+
+      - name: Derrubar
+        if: always()
+        run: docker rm -f recados-checkpoint || true
