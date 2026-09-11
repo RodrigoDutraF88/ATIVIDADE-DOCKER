@@ -28,7 +28,11 @@ com o verificar.sh. O codigo em api/ e db/ nao precisa ser alterado.
 | 5 | Dockerfile multi-stage abaixo de 200MB e .dockerignore com node_modules |
 | 6 | Volume nomeado para o banco e rede definida pelo usuario |
 | 7 | compose.yaml sobe API e banco; variaveis vem do .env |
-| 8 | Imagem publicada e compose funcionando com a tag remota |
+| 8 (opcional) | Imagem publicada e compose funcionando com a tag remota |
+
+As sessoes 1 a 7 ja cobrem o necessario para o dia a dia num projeto da CJR.
+A sessao 8 e opcional: e para quem quer publicar a propria imagem e seguir
+depois para CI e Kubernetes.
 
 ## Verificacao
 
