@@ -217,7 +217,7 @@ sessao5() {
   if [ -f "${SCRIPT_DIR}/.dockerignore" ] && grep -q "node_modules" "${SCRIPT_DIR}/.dockerignore"; then
     ok ".dockerignore existe e ignora node_modules."
   else
-    falha ".dockerignore ausente ou sem node_modules. Renomeie .dockerignore.exemplo para .dockerignore."
+    falha ".dockerignore ausente ou sem node_modules. Renomeie .dockerignore.example para .dockerignore."
   fi
   if ! docker build -t recados-local:sessao5 "$SCRIPT_DIR" >/dev/null 2>&1; then
     falha "Build falhou. Rode 'docker build -t recados-local:sessao5 .' para ver o erro."
