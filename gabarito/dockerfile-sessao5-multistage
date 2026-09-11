@@ -1,12 +1,12 @@
 # Gabarito da sessao 5: build multi-stage e imagem base pequena.
 # Imagem final fica abaixo de 200MB. Renomeie para Dockerfile na raiz para usar.
 
-# Etapa de build: instala apenas dependencias de producao.
+# Etapa de build: instala as dependencias.
 FROM node:22-alpine AS build
 WORKDIR /app
-# npm ci usa o package-lock.json para uma instalacao exata e reprodutivel.
-COPY api/package.json api/package-lock.json ./
-RUN npm ci --omit=dev
+# Copiar so o package.json antes do codigo preserva o cache da instalacao.
+COPY api/package.json ./
+RUN npm install
 
 # Etapa final: so o runtime, o node_modules pronto e o codigo.
 FROM node:22-alpine
