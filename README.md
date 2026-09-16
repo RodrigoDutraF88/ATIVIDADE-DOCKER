@@ -13,9 +13,9 @@ sessoes.
 
 ## Como usar
 
-Clone o repositorio e trabalhe sempre na raiz. A cada sessao voce cria ou ajusta
-um arquivo de infraestrutura (Dockerfile, .dockerignore, compose.yaml) e valida
-com o verificar.sh. O codigo em api/ e db/ nao precisa ser alterado.
+Faca um fork pelo GitHub (botao Fork, no canto superior direito) e clone o SEU fork. Trabalhe sempre na raiz. A cada sessao voce cria ou ajusta um arquivo de
+infraestrutura e valida com o
+verificar.sh. O codigo em api/ e db/ nao precisa ser alterado.
 
 ## Sessoes
 
@@ -45,8 +45,9 @@ fazer. O script sai com codigo 0 se tudo passou e 1 caso contrario.
 
 ## Entrega
 
-Abra um pull request com sua entrega final. O workflow builda seu Dockerfile,
-sobe o compose e falha se /health nao responder.
+Abra um pull request do seu fork para este repositorio (base: main) com sua
+entrega final. O workflow builda seu Dockerfile, sobe o compose e falha se
+/health nao responder.
 
 ## Gabarito
 
