@@ -2,8 +2,10 @@
 #
 # verificar.sh - checagens objetivas da trilha de Docker da CJR.
 # Uso: ./verificar.sh <numero-da-sessao>   (de 1 a 8)
+#      ./verificar.sh --reset-nome
 #
-# Cada checagem imprime OK ou FALHA com uma linha do que fazer.
+# Na primeira vez pergunta o seu nome. Itens em vermelho (x) sao o que ainda
+# falta fazer; faca a tarefa e rode de novo.
 # Sai com codigo 0 se tudo passou, 1 caso contrario.
 #
 # Ajuste por variavel de ambiente, se necessario:
@@ -23,10 +25,29 @@ API_URL="http://localhost:${API_PORT}"
 IMAGE="${RECADOS_IMAGE:-ghcr.io/rodrigodutraf88/recados}"
 STATE_FILE="${SCRIPT_DIR}/.verificar-tamanho"
 
+NOME_FILE="${SCRIPT_DIR}/.verificar-nome"
+verde=$'\033[32m'; verm=$'\033[31m'; amar=$'\033[33m'; neg=$'\033[1m'; z=$'\033[0m'
 FALHOU=0
 
-ok()    { printf 'OK    - %s\n' "$1"; }
-falha() { printf 'FALHA - %s\n' "$1"; FALHOU=1; }
+carregar_nome() {
+  [ -n "${TRILHA_NOME:-}" ] && { printf '%s' "$TRILHA_NOME"; return; }
+  [ -f "$NOME_FILE" ] && { cat "$NOME_FILE"; return; }
+  local nome="colega"
+  if [ -t 0 ]; then
+    printf 'Antes de comecar, como voce se chama? ' >&2
+    read -r nome; nome="${nome:-colega}"
+  fi
+  printf '%s' "$nome" > "$NOME_FILE"
+  printf '%s' "$nome"
+}
+
+ok()    { printf '  %s✓%s %s\n' "$verde" "$z" "$1"; }
+falha() { printf '  %s✗%s %s\n' "$verm" "$z" "$1"; FALHOU=1; }
+dica()  { printf '      %s↳%s %s\n' "$amar" "$z" "$1"; }
+parabens() { printf '\n%s%s🎉 Parabens, %s!%s %s\n' "$verde" "$neg" "$NOME" "$z" "$1"; }
+quase()    { printf '\n%s%s, quase la.%s Os itens com %s✗%s sao o que falta, faca e rode de novo.\n' "$verm" "$NOME" "$z" "$verm" "$z"; }
+banner()   { printf '%sOla, %s! Conferindo a Sessao %s: %s.%s\n\n' "$neg" "$NOME" "$1" "$2" "$z"; FALHOU=0; }
+fim()      { if [ "$FALHOU" -eq 0 ]; then parabens "$1"; else quase; fi; }
 
 # --- utilidades tolerantes -------------------------------------------------
 
@@ -105,7 +126,7 @@ compose_disponivel() {
 # --- sessoes ---------------------------------------------------------------
 
 sessao1() {
-  echo "Sessao 1: Postgres em container aceitando conexao"
+  banner 1 "Postgres em container aceitando conexao"
   exigir_docker || return
   local c; c="$(find_pg_container)"
   if [ -z "$c" ]; then
@@ -126,7 +147,7 @@ sessao1() {
 }
 
 sessao2() {
-  echo "Sessao 2: container recados-db, exec e logs"
+  banner 2 "container recados-db, exec e logs"
   exigir_docker || return
   if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$DB_CONTAINER"; then
     falha "Container '${DB_CONTAINER}' nao esta rodando. Suba com --name ${DB_CONTAINER}."
@@ -146,7 +167,7 @@ sessao2() {
 }
 
 sessao3() {
-  echo "Sessao 3: imagem ${IMAGE} puxada e rodando"
+  banner 3 "imagem ${IMAGE} puxada e rodando"
   exigir_docker || return
   local img=""
   if docker image inspect "$IMAGE" >/dev/null 2>&1; then
@@ -169,7 +190,7 @@ sessao3() {
 }
 
 sessao4() {
-  echo "Sessao 4: Dockerfile na raiz, build e /health"
+  banner 4 "Dockerfile na raiz, build e /health"
   exigir_docker || return
   if [ ! -f "${SCRIPT_DIR}/Dockerfile" ]; then
     falha "Nao existe Dockerfile na raiz. Escreva um (veja gabarito/dockerfile-sessao4)."
@@ -201,7 +222,7 @@ sessao4() {
 }
 
 sessao5() {
-  echo "Sessao 5: multi-stage, imagem < 200MB, .dockerignore"
+  banner 5 "multi-stage, imagem < 200MB, .dockerignore"
   exigir_docker || return
   if [ ! -f "${SCRIPT_DIR}/Dockerfile" ]; then
     falha "Nao existe Dockerfile na raiz."
@@ -240,7 +261,7 @@ sessao5() {
 }
 
 sessao6() {
-  echo "Sessao 6: volume nomeado, persistencia e rede do usuario"
+  banner 6 "volume nomeado, persistencia e rede do usuario"
   exigir_docker || return
 
   local vol; vol="$(db_named_volume)"
@@ -290,7 +311,7 @@ sessao6() {
 }
 
 sessao7() {
-  echo "Sessao 7: compose sobe API e banco, .env, /health 200"
+  banner 7 "compose sobe API e banco, .env, /health 200"
   exigir_docker || return
   if ! compose_disponivel; then
     falha "'docker compose' indisponivel. Atualize o Docker."
@@ -325,7 +346,7 @@ sessao7() {
 }
 
 sessao8() {
-  echo "Sessao 8: imagem publicada e compose funcionando"
+  banner 8 "imagem publicada e compose funcionando"
   exigir_docker || return
   if docker manifest inspect "$IMAGE" >/dev/null 2>&1; then
     ok "Tag remota existe no registro: $IMAGE"
@@ -361,26 +382,30 @@ sessao8() {
 # --- entrada ---------------------------------------------------------------
 
 n="${1:-}"
+
+if [ "$n" = "--reset-nome" ]; then
+  rm -f "$NOME_FILE"
+  echo "Pronto, esqueci seu nome. Da proxima vez eu pergunto de novo."
+  exit 0
+fi
+
+NOME="$(carregar_nome)"
+
 case "$n" in
-  1) sessao1;;
-  2) sessao2;;
-  3) sessao3;;
-  4) sessao4;;
-  5) sessao5;;
-  6) sessao6;;
-  7) sessao7;;
-  8) sessao8;;
+  1) sessao1; MSG="Voce rodou um Postgres sem instalar Postgres na maquina. Esse e o poder do container.";;
+  2) sessao2; MSG="Voce domina os comandos de container do dia a dia: run, exec, logs.";;
+  3) sessao3; MSG="Voce sabe puxar, inspecionar e rodar imagens de um registry.";;
+  4) sessao4; MSG="Seu Dockerfile builda e a imagem sobe respondendo. Checkpoint concluido!";;
+  5) sessao5; MSG="Imagem multi-stage e enxuta, abaixo de 200MB. Build eficiente dominado.";;
+  6) sessao6; MSG="Dados que persistem e containers na mesma rede. Volumes e rede sob controle.";;
+  7) sessao7; MSG="Um comando sobe API e banco juntos. Voce ja trabalha em qualquer projeto da CJR!";;
+  8) sessao8; MSG="Imagem publicada no registro e ambiente no ar. Modulo opcional concluido!";;
   *)
     echo "Uso: ./verificar.sh <numero-da-sessao>   (de 1 a 8)"
+    echo "     ./verificar.sh --reset-nome"
     exit 1
     ;;
 esac
 
-echo
-if [ "$FALHOU" -eq 0 ]; then
-  echo "Resultado: tudo passou."
-  exit 0
-else
-  echo "Resultado: ha falhas acima."
-  exit 1
-fi
+fim "$MSG"
+exit "$FALHOU"

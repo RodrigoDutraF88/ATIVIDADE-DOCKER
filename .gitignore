@@ -7,3 +7,4 @@ npm-debug.log
 
 # Estado local do verificar.sh.
 .verificar-tamanho
+.verificar-nome
