@@ -1,0 +1,14 @@
+# Renomeie para .dockerignore na sessao 5.
+# Mantem a imagem menor e o contexto de build limpo.
+
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+Dockerfile
+compose.yaml
+gabarito
+README.md
+verificar.sh
